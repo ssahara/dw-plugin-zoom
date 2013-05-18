@@ -1,9 +1,12 @@
 <?php
 /**
+ * DokuWiki zoom pluin (Syntax component)
+ *
  * Make images zoomable
  *
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  * @author     Heiko Höbel
+ * @modified   Satoshi Sahara <sahara.satoshi@gmail.com>
  * Uses Cloud Zoom, Copyright (c) 2010 R Ceccor, www.professorcloud.com
  * and jQuery (jQuery.org)
  */
@@ -92,10 +95,10 @@ class syntax_plugin_zoom extends DokuWiki_Syntax_Plugin {
         } else {
             if (preg_match('/\b[xX](\d+)\b/',$params,$match)){
                 $data['height']  = $match[1];
-                $data['width'] = $match[1]*$data['imageWidth']/$data['imageHeight'];
+                $data['width'] = round($match[1]*$data['imageWidth']/$data['imageHeight']);
             } elseif (preg_match('/\b(\d+)\b/',$params,$match)){
                 $data['width']  = $match[1];
-                $data['height'] = $match[1]*$data['imageHeight']/$data['imageWidth'];
+                $data['height'] = round($match[1]*$data['imageHeight']/$data['imageWidth']);
             }
         }
         return $data;
