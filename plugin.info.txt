@@ -1,0 +1,8 @@
+# General Plugin Info do not edit
+base   zoom
+author Heiko Hoebel
+email  zoom_plugin.20.hhoebel@9ox.net
+date   2011-02-24
+name   zoom Plugin
+desc   make images zoomable
+url    http://www.ib-hoebel.de/wiki/doku.php?id=zoom_plugin

@@ -1,0 +1,71 @@
+.cloud-zoom  img{
+	border: 1px solid #CCCCCC;
+}
+.cloud-zoom-gallery  img{
+	border: 0px solid #CCCCCC;
+}
+
+/* This is the moving lens square underneath the mouse pointer. */
+.cloud-zoom-lens {
+	border: 0px solid #777777;
+	margin: 0px;	/* Set this to minus the border thickness. */
+	background-color:#fff;	
+	cursor:move;		
+}
+
+/* This is for the title text. */
+.cloud-zoom-title {
+	font-family:Arial, Helvetica, sans-serif;
+	position:absolute !important;
+	background-color:#000;
+	color:#fff;
+	padding:3px;
+	width:100%;
+	text-align:center;	
+	font-weight:bold;
+	font-size:10px;
+	top:0px;
+}
+
+/* This is the zoom window. */
+.cloud-zoom-big {
+	border:1px solid #555555;
+	overflow:hidden;
+}
+
+/* This is the loading message. */
+.cloud-zoom-loading {
+	color:white;	
+	background:#CCCCCC;
+	padding:3px;
+	border:1px solid #CCCCCC;
+}
+.cloud-zoom-center {
+	display: block;
+	margin: 10px auto;
+}
+.cloud-zoom-block-left {
+	float:left;
+	margin-right: 100%;
+	margin-top: 10px; 
+	margin-bottom: 10px;
+}
+.cloud-zoom-block-right {
+	float:right;
+	margin-left: 100%;
+	margin-top: 10px; 
+	margin-bottom: 10px;
+}
+.cloud-zoom-float-left {
+	float:left;
+	margin-right: 10px;
+	margin-top: 10px; 
+	margin-bottom: 10px;
+}
+.cloud-zoom-float-right {
+	float:right;
+	margin-left: 10px;
+	margin-top: 10px; 
+	margin-bottom: 10px;
+}
+
