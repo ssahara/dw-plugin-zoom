@@ -82,11 +82,16 @@ class syntax_plugin_zoom extends DokuWiki_Syntax_Plugin {
                 $data['ext_params'] = "showTitle:false, " . trim($ext_params);
             }
         }
-        // resolving relatives
-        $data['image'] = resolve_id(getNS($ID),$img);
 
-        $file = mediaFN($data['image']);
-        list($data['imageWidth'],$data['imageHeight']) = @getimagesize($file);
+        // determine image size, even if URL is given
+        if(preg_match('#^(https?|ftp)://#i', $img)) {
+            $data['image'] = $img;
+            list($data['imageWidth'],$data['imageHeight']) = @getimagesize($img);
+        } else {
+            // properly handle relative names
+            $data['image'] = resolve_id(getNS($ID),$img);
+            list($data['imageWidth'],$data['imageHeight']) = @getimagesize(mediaFN($data['image']));
+        }
 
         // size
         if (preg_match('/\b(\d+)[xX](\d+)\b/',$params,$match)){
