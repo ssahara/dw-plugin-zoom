@@ -9,6 +9,10 @@
  * @modified   Satoshi Sahara <sahara.satoshi@gmail.com>
  * Uses Cloud Zoom, Copyright (c) 2010 R Ceccor, www.professorcloud.com
  * and jQuery (jQuery.org)
+   SYNTAX:
+       {{zoom widthxheight parameters > file }}
+
+       {{zoom>file?widthxheight&parameters}}   (original syntax)
  */
 
 if (!defined('DOKU_INC')) die();
@@ -25,7 +29,7 @@ class syntax_plugin_zoom extends DokuWiki_Syntax_Plugin {
      * Connect pattern to lexer
      */
     function connectTo($mode) {
-        $this->Lexer->addSpecialPattern('\{\{zoom>[^}]*\}\}',$mode,'plugin_zoom');
+        $this->Lexer->addSpecialPattern('{{zoom.*?\>.*?}}',$mode,'plugin_zoom');
     }
 
     /**
@@ -39,37 +43,40 @@ class syntax_plugin_zoom extends DokuWiki_Syntax_Plugin {
             'height'        => 250,
         );
 
-        $match = substr($match,7,-2); //strip markup from start and end
+        $match = substr($match,6,-2); //strip markup from start and end
+        list($all_params, $media) = explode('>', $match, 2);
+        // take care original syntax
+        if (strpos($media,'?') !== false) {
+            list($media, $all_params) = explode('?', $media, 2);
+        }
 
         // alignment
         $data['align'] = 0;
-        if (substr($match,0,1) == ' ') {
-            if (substr($match,-1,1) == ' ') {
+        if (substr($media,0,1) == ' ') {
+            if (substr($media,-1,1) == ' ') {
                 $data['align'] = 3;  // cloud-zoom-center
             } else {
                 $data['align'] = 1;  // cloud-zoom-block-right
             }
-        } elseif (substr($match,-1,1) == ' ') {
+        } elseif (substr($media,-1,1) == ' ') {
             $data['align'] = 2;      // cloud-zoomblock-left
-        } elseif (substr($match,0,1) == '*') {
-            $match = substr($match,1);
-            if (substr($match,-1,1) == '*') {
-                $match = substr($match,0,-1);
+        } elseif (substr($media,0,1) == '*') {
+            $media = substr($media,1);
+            if (substr($media,-1,1) == '*') {
+                $media = substr($media,0,-1);
                 $data['align'] = 3;  // cloud-zoom-center
             } else {
                 $data['align'] = 4;  // cloud-zoom-float-right
             }
-        } elseif (substr($match,-1,1) == '*') {
-            $match = substr($match,0,-1);
+        } elseif (substr($media,-1,1) == '*') {
+            $media = substr($media,0,-1);
             $data['align'] = 5;      // cloud-zoom-float-left
         }
+        $img =trim($media);
 
-        // extract params
-        list($img,$all_params) = explode('?',$match,2);
-        // extract params
-        list($params,$ext_params) = explode('&',$all_params,2);
-        $img = trim($img);
-        //remove unwanted quotes and other chars
+        // extract params, separeted by white space
+        list($params,$ext_params) = explode("\s+",trim($all_params),2);
+        // remove unwanted quotes and other chars
         $ext_params = str_replace(chr(34),"",$ext_params);
         $ext_params = str_replace(chr(47),"",$ext_params);
         $ext_params = str_replace(chr(92),"",$ext_params);
