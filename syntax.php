@@ -21,21 +21,21 @@ require_once(DOKU_PLUGIN.'syntax.php');
 
 class syntax_plugin_zoom extends DokuWiki_Syntax_Plugin {
 
-    function getType() { return 'substition'; }
-    function getPType(){ return 'block'; }
-    function getSort() { return 301; }
+    public function getType() { return 'substition'; }
+    public function getPType(){ return 'block'; }
+    public function getSort() { return 301; }
 
     /**
      * Connect pattern to lexer
      */
-    function connectTo($mode) {
+    public function connectTo($mode) {
         $this->Lexer->addSpecialPattern('{{zoom.*?\>.*?}}',$mode,'plugin_zoom');
     }
 
     /**
      * Handle the match
      */
-    function handle($match, $state, $pos, &$handler){
+    public function handle($match, $state, $pos, &$handler){
         global $ID;
 
         $data = array( // set default
@@ -46,7 +46,7 @@ class syntax_plugin_zoom extends DokuWiki_Syntax_Plugin {
         $match = substr($match,6,-2); //strip markup from start and end
         list($all_params, $media) = explode('>', $match, 2);
         // take care original syntax
-        if (strpos($media,'?') !== false) {
+        if ($all_params == '') {
             list($media, $all_params) = explode('?', $media, 2);
         }
 
@@ -91,7 +91,7 @@ class syntax_plugin_zoom extends DokuWiki_Syntax_Plugin {
         }
 
         // determine image size, even if URL is given
-        if(preg_match('#^(https?|ftp)://#i', $img)) {
+        if (preg_match('#^(https?|ftp)://#i', $img)) {
             $data['image'] = $img;
             list($data['imageWidth'],$data['imageHeight']) = @getimagesize($img);
         } else {
@@ -119,7 +119,7 @@ class syntax_plugin_zoom extends DokuWiki_Syntax_Plugin {
     /**
      * Create output
      */
-    function render($mode, &$renderer, $data) {
+    public function render($mode, &$renderer, $data) {
         if($mode != 'xhtml') return false;
 
         $align = '';
