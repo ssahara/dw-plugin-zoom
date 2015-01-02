@@ -1,7 +1,7 @@
 base   zoom
 author Heiko Höbel
 email  zoom_plugin.20.hhoebel@9ox.net
-date   2013-05-18
+date   2015-01-02
 name   zoom plugin
 desc   make images zoomable
-url    http://www.dokuwiki.org/plugin:zoom
+url    https://www.dokuwiki.org/plugin:zoom
