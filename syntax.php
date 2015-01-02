@@ -7,12 +7,14 @@
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  * @author     Heiko Höbel
  * @modified   Satoshi Sahara <sahara.satoshi@gmail.com>
- * Uses Cloud Zoom, Copyright (c) 2010 R Ceccor, www.professorcloud.com
- * and jQuery (jQuery.org)
-   SYNTAX:
-       {{zoom widthxheight parameters > file }}
-
-       {{zoom>file?widthxheight&parameters}}   (original syntax)
+ * Uses Cloud Zoom v1.0.2.x, Copyright (c) 2010 R Ceccor, www.professorcloud.com
+ *
+ *  SYNTAX:
+ *      {{zoom WxH zoom_parameters > file }}
+ *      {{zoom zoom_parameters > file?WxH }}
+ *      {{zoom zoom_parameters > file?W }}
+ *
+ *      {{zoom> file?WxH&zoom_parameters }}  (original syntax, to be deprecated)
  */
 
 if (!defined('DOKU_INC')) die();
@@ -38,17 +40,10 @@ class syntax_plugin_zoom extends DokuWiki_Syntax_Plugin {
     public function handle($match, $state, $pos, Doku_Handler $handler){
         global $ID;
 
-        $data = array( // set default
-            'width'         => 500,
-            'height'        => 250,
-        );
-
-        $match = substr($match, 6, -2); //strip markup from start and end
-        list($all_params, $media) = explode('>', $match, 2);
-        // take care original syntax
-        if ($all_params == '') {
-            list($media, $all_params) = explode('?', $media, 2);
-        }
+        $match = substr($match, 6, -2); //strip markup
+        list($params, $media) = explode('>', $match, 2);
+        list($media,  $title) = explode('|', $media, 2);
+        $params = trim($params);
 
         // alignment
         $data['align'] = 0;
@@ -56,10 +51,12 @@ class syntax_plugin_zoom extends DokuWiki_Syntax_Plugin {
             if (substr($media, -1, 1) == ' ') {
                 $data['align'] = 3;  // cloud-zoom-center
             } else {
-                $data['align'] = 1;  // cloud-zoom-block-right
+                //$data['align'] = 1;  // cloud-zoom-block-right
+                $data['align'] = 4;  // cloud-zoom-float-right
             }
         } elseif (substr($media, -1, 1) == ' ') {
-            $data['align'] = 2;      // cloud-zoomblock-left
+            //$data['align'] = 2;      // cloud-zoomblock-left
+            $data['align'] = 5;      // cloud-zoom-float-left
         } elseif (substr($media, 0, 1) == '*') {
             $media = substr($media, 1);
             if (substr($media, -1, 1) == '*') {
@@ -72,23 +69,18 @@ class syntax_plugin_zoom extends DokuWiki_Syntax_Plugin {
             $media = substr($media, 0, -1);
             $data['align'] = 5;      // cloud-zoom-float-left
         }
-        $img =trim($media);
+        $media =trim($media);
 
-        // extract params, separeted by white space
-        list($params, $ext_params) = explode("\s+", trim($all_params), 2);
-        // remove unwanted quotes and other chars
-        $ext_params = str_replace(chr(34), "", $ext_params);
-        $ext_params = str_replace(chr(47), "", $ext_params);
-        $ext_params = str_replace(chr(92), "", $ext_params);
-        if (!isset($ext_params) || empty($ext_params) || strlen($ext_params) < 5) {
-            $data['ext_params'] = "position: 'inside', adjustX: -1, adjustY: -1, showTitle: false";
-        } else {
-            if (strpos($ext_params,"position") === false){
-                $data['ext_params'] = "position:'inside', adjustX:-1, adjustY:-1, showTitle:false, " . trim($ext_params);
-            } else {
-                $data['ext_params'] = "showTitle:false, " . trim($ext_params);
-            }
+        // check whether $media has zoom parameters, 旧シンタックスの救済措置
+        if (empty($params) && preg_match('/\?(\d+)([xX](\d+))?&/', $media, $matches)) {
+            list($media, $params) = explode('&', $media, 2);
         }
+        // check whether $media has size parameters, eg. ?32x32
+        if (preg_match('/\?(\d+)([xX](\d+))?/', $media, $matches)) {
+            $media = str_replace($matches[0],'', $media);
+            $params = substr($matches[0],1).' '.$params;
+        }
+        $img = trim($media);
 
         // determine image size, even if URL is given
         if (preg_match('#^(https?|ftp)://#i', $img)) {
@@ -100,19 +92,45 @@ class syntax_plugin_zoom extends DokuWiki_Syntax_Plugin {
             list($data['imageWidth'], $data['imageHeight']) = @getimagesize(mediaFN($data['image']));
         }
 
-        // size
-        if (preg_match('/\b(\d+)[xX](\d+)\b/', $params, $match)){
+        // separate size and zoom parameters
+        if (preg_match('/^\d+([xX]\d+)?/', $params)){
+            list($size_params, $zoom_params) = explode(' ', $params, 2);
+        } else {
+            $zoom_params = $param;
+        }
+
+        // size params
+        if ($data['imageWidth'])  $data['width']  = $data['imageWidth'];
+        if ($data['imageHeight']) $data['height'] = $data['imageHeight'];
+        if (preg_match('/\b(\d+)[xX](\d+)\b/', $size_params, $match)){
             $data['width']  = $match[1];
             $data['height'] = $match[2];
-        } else {
-            if (preg_match('/\b[xX](\d+)\b/', $params, $match)){
-                $data['height']  = $match[1];
-                $data['width'] = round($match[1]*$data['imageWidth']/$data['imageHeight']);
-            } elseif (preg_match('/\b(\d+)\b/',$params,$match)){
-                $data['width']  = $match[1];
-                $data['height'] = round($match[1]*$data['imageHeight']/$data['imageWidth']);
-            }
+            $size_params = str_replace($match[0],'', $size_params);
+        } elseif (preg_match('/\b[xX](\d+)\b/', $size_params, $match)){ // 非推奨
+            $data['height']  = $match[1];
+            $data['width'] = round($match[1]*$data['imageWidth']/$data['imageHeight']);
+            $size_params = str_replace($match[0],'', $size_params);
+        } elseif (preg_match('/\b(\d+)\b/',$size_params, $match)){
+            $data['width']  = $match[1];
+            $data['height'] = round($match[1]*$data['imageHeight']/$data['imageWidth']);
+            $size_params = str_replace($match[0],'', $size_params);
         }
+
+        // zoom params for cloud-zoom, remove unwanted quotes and other chars
+        $zoom_params = str_replace(chr(34), "", $zoom_params); // '"'
+        $zoom_params = str_replace(chr(47), "", $zoom_params); // '/'
+        $zoom_params = str_replace(chr(92), "", $zoom_params); // '\'
+        if (!isset($zoom_params) || empty($zoom_params) || strlen($zoom_params) < 5) {
+            $data['zoom_params'] = "position: 'inside', adjustX: -1, adjustY: -1, showTitle: false";
+        } else {
+            if (strpos($zoom_params,'position') === false){
+                $data['zoom_params'] = "position:'inside', adjustX:-1, adjustY:-1, showTitle:false, ";
+            } else {
+                $data['zoom_params'] = "showTitle:false, ";
+            }
+            $data['zoom_params'].= trim($zoom_params);
+        }
+
         return $data;
     }
 
@@ -144,7 +162,7 @@ class syntax_plugin_zoom extends DokuWiki_Syntax_Plugin {
         $html = '<div style="'.$style.'" class="'.$align.'">';
         $html.= '<div style="position:relative;">';
         $html.= '<a href="'.ml($data['image'], array('w'=>$data['imageWidth'],'h'=>$data['imageHeight'])).
-                '" class="cloud-zoom" rel="' . $data['ext_params'] .'">';
+                '" class="cloud-zoom" rel="' . $data['zoom_params'] .'">';
         $html.= '<img src="'.ml($data['image'], array('w'=>$data['width'],'h'=>$data['height'])).
                 '" width="'.$data['width'].'" height="'.$data['height'].'" alt="" />';
         $html.= '</a></div></div>';
