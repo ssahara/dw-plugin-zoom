@@ -46,30 +46,20 @@ class syntax_plugin_zoom extends DokuWiki_Syntax_Plugin {
         $params = trim($params);
 
         // alignment
-        $data['align'] = 0;
-        if (substr($media, 0, 1) == ' ') {
-            if (substr($media, -1, 1) == ' ') {
-                $data['align'] = 3;  // cloud-zoom-center
-            } else {
-                //$data['align'] = 1;  // cloud-zoom-block-right
-                $data['align'] = 4;  // cloud-zoom-float-right
-            }
-        } elseif (substr($media, -1, 1) == ' ') {
-            //$data['align'] = 2;      // cloud-zoomblock-left
-            $data['align'] = 5;      // cloud-zoom-float-left
-        } elseif (substr($media, 0, 1) == '*') {
-            $media = substr($media, 1);
-            if (substr($media, -1, 1) == '*') {
-                $media = substr($media, 0, -1);
-                $data['align'] = 3;  // cloud-zoom-center
-            } else {
-                $data['align'] = 4;  // cloud-zoom-float-right
-            }
-        } elseif (substr($media, -1, 1) == '*') {
-            $media = substr($media, 0, -1);
-            $data['align'] = 5;      // cloud-zoom-float-left
+        preg_match('/^([ \*]*)([^ \*]*)([ \*]*)?$/', $media, $matches);
+        //msg( var_export($matches, true), 0);
+        if (!empty($matches[1]) && !empty($matches[3])) {
+            $data['align'] = 3;  // cloud-zoom-center
+        } elseif (!empty($matches[1])) {
+            $data['align'] = 4;  // cloud-zoom-float-right
+            //if (strpos($matches[1], '*') === false) $data['align'] = 1; // cloud-zoom-block-right
+        } elseif (!empty($matches[3])) {
+            $data['align'] = 5;  // cloud-zoom-float-left
+            //if (strpos($matches[3], '*') === false) $data['align'] = 2; // cloud-zoom-block-left
+        } else {
+            $data['align'] = 0;
         }
-        $media =trim($media);
+        $media = $matches[2];
 
         // check whether $media has zoom parameters, 旧シンタックスの救済措置
         if (empty($params) && preg_match('/\?(\d+)([xX](\d+))?&/', $media, $matches)) {
