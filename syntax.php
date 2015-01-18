@@ -8,6 +8,7 @@
  * @author     Heiko Höbel
  * @modified   Satoshi Sahara <sahara.satoshi@gmail.com>
  * Uses Cloud Zoom v1.0.2.x, Copyright (c) 2010 R Ceccor, www.professorcloud.com
+ * with enhancements by Philipp Andreas <https://github.com/smurfy/cloud-zoom>
  *
  *  SYNTAX:
  *      {{zoom WxH zoom_parameters > file }}
@@ -23,6 +24,8 @@ require_once(DOKU_PLUGIN.'syntax.php');
 
 class syntax_plugin_zoom extends DokuWiki_Syntax_Plugin {
 
+    protected $match_pattern = '{{zoom\b.*?\>.*?}}';
+
     public function getType() { return 'substition'; }
     public function getPType(){ return 'block'; }
     public function getSort() { return 301; }
@@ -31,7 +34,7 @@ class syntax_plugin_zoom extends DokuWiki_Syntax_Plugin {
      * Connect pattern to lexer
      */
     public function connectTo($mode) {
-        $this->Lexer->addSpecialPattern('{{zoom.*?\>.*?}}', $mode, 'plugin_zoom');
+        $this->Lexer->addSpecialPattern($this->match_pattern, $mode, 'plugin_zoom');
     }
 
     /**
